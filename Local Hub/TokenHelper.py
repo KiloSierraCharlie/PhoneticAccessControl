@@ -1,4 +1,3 @@
-from sqlite3 import Time
 from requests import Timeout, ConnectionError, post
 from os import path
 from json import loads, dumps
