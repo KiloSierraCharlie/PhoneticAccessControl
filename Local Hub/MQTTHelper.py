@@ -2,7 +2,7 @@ from time import sleep
 from json import loads
 from paho.mqtt import client as mqtt_client
 from random import randint
-
+from json import dumps
 class MQTTHelper:
     def __init__( self, brokerAddress, brokerPort, tokenHelper ):
         self.brokerAddr = brokerAddress
@@ -45,7 +45,11 @@ class MQTTHelper:
     def sendAuthorization( self, device_id ):
         while True:
             sleep(1)
-            result = self.client.publish(f"device/{device_id}", "AUTH-OPEN", qos=2)
+            command = {
+                "command": "open",
+                "key": None
+            }
+            result = self.client.publish(f"device/{device_id}", dumps(command), qos=2)
             self.client.loop()
             if result[0] == 0:
                 print(f"[MQTT] Send authorization to topic `device/{device_id}`")
