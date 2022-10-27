@@ -19,6 +19,7 @@ class MQTTHelper:
                 print(f"[MQTT] Failed to connect, return code {rc}.")
 
         self.client = mqtt_client.Client( f'phonetic-{randint( 1, 10000 )}' )
+        self.client.tls_set(ca_certs="/etc/mosquitto/certs/ca-root-cert.crt")
         self.client.on_connect = on_connect
         self.client.connect( self.brokerAddr, self.brokerPort )
 
