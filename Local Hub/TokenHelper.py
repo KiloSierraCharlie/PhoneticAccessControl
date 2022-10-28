@@ -33,7 +33,7 @@ class TokenHelper:
         return False
 
     def loadTokenFromWeb( self, device, uid ):
-        req = post( "https://" + self.tenant + ".phoneticapps.co.uk/accesscontrol/validateUID", data={'uid': uid, 'device': device}, timeout=0.75 )
+        req = post( "https://" + self.tenant + ".phoneticapps.co.uk/accesscontrol/validateUID", data={'uid': uid, 'device': device}, timeout=0.5 )
         if( req.status_code == 200 ):
             self.lastLoadWeb = True
             return True
