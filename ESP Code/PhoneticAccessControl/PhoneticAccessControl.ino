@@ -86,16 +86,16 @@ void subCallback(char *topic, byte *payload, unsigned int length)
             digitalWrite(RELAY_SIGNAL_PIN, HIGH);
             delay( 500 );
             digitalWrite(RELAY_SIGNAL_PIN, LOW);
+            mqttClient.publish(("device/" + device_id).c_str(), "Connected"); 
         }
     }
-    mqttClient.publish(("device/" + device_id).c_str(), "Connected"); 
 }
 
 void detectTag(){
     uint8_t success;
     uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };
     uint8_t uidLength;
-    success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength, 250);
+    success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength, 100);
 
     if ( success ) {
         String curTag = tagToString( uid );
