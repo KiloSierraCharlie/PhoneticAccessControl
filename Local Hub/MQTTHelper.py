@@ -26,6 +26,7 @@ class MQTTHelper:
         self.subscribe( "validate" )
 
     def onMessageRecieve( self, client, userdata, message ):
+        self.client.publish("validate", "", qos=2)
         try:
             data = loads( message.payload.decode() )
             validationResult = self.tokenHelper.retrieveToken( data["device"], data["uid"] )
