@@ -1,6 +1,8 @@
+#!/usr/local/bin/python3
+
 from MQTTHelper import MQTTHelper
 from TokenHelper import TokenHelper
-
+from threading import Thread
 locallyStoredDevices = (
     "HENLEY_STORES", "HENLEY_GARAGE", "HENLEY_OFFICE", 
     "HENLEY_LOCKER_1", "HENLEY_LOCKER_2", "HENLEY_LOCKER_3", 
@@ -9,7 +11,11 @@ locallyStoredDevices = (
 
 def run():
     th = TokenHelper( "smr", locallyStoredDevices )
-    mqtt = MQTTHelper( "broker.emqx.io", 1883, th )
+
+    t = Thread(target=th.uploadOfflineLog, daemon=True)
+    t.start()
+
+    mqtt = MQTTHelper( "broker.emqx.io", 1883, th)
     mqtt.connect()
     mqtt.client.loop_forever()
 

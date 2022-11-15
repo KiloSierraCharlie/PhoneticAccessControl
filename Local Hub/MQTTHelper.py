@@ -1,15 +1,17 @@
-from time import sleep
 from json import loads
 from paho.mqtt import client as mqtt_client
 from random import randint
 from json import dumps
 class MQTTHelper:
-    def __init__( self, brokerAddress, brokerPort, tokenHelper ):
+    def __init__( self, brokerAddress, brokerPort, tokenHelper, ca_cert = None ):
         self.brokerAddr = brokerAddress
         self.brokerPort = brokerPort
         self.tokenHelper = tokenHelper
         
         self.client = None
+
+        self.ca_cert = ca_cert
+
 
     def connect( self ):
         def on_connect(client, userdata, flags, rc):
@@ -19,7 +21,8 @@ class MQTTHelper:
                 print(f"[MQTT] Failed to connect, return code {rc}.")
 
         self.client = mqtt_client.Client( f'phonetic-{randint( 1, 10000 )}' )
-        self.client.tls_set(ca_certs="/etc/mosquitto/certs/ca-root-cert.crt")
+        if( self.ca_cert is not None ):
+            self.client.tls_set(ca_certs=self.ca_cert)
         self.client.on_connect = on_connect
         self.client.connect( self.brokerAddr, self.brokerPort )
 
@@ -27,13 +30,15 @@ class MQTTHelper:
 
     def onMessageRecieve( self, client, userdata, message ):
         self.client.publish("validate", "", qos=2)
+        if( message.payload.decode() == "" ): return
         try:
             data = loads( message.payload.decode() )
             validationResult = self.tokenHelper.retrieveToken( data["device"], data["uid"] )
             if( self.tokenHelper.lastLoadWeb ):
-                self.tokenHelper.storeTokenResult( data["device"], data["uid"], validationResult )
+                self.tokenHelper.storeTokenResult( data["device"], data["uid"], validationResult )                
             if( validationResult ):
                 print( "[MQTT] Validation success." )
+                self.tokenHelper.addToOfflineLog( data["device"], data["uid"] )
                 self.sendAuthorization( data["device"] )
             else:
                 print( "[MQTT] Validation failed." )
@@ -46,7 +51,6 @@ class MQTTHelper:
 
     def sendAuthorization( self, device_id ):
         while True:
-            sleep(1)
             command = {
                 "command": "open",
                 "key": None
@@ -55,7 +59,6 @@ class MQTTHelper:
             self.client.loop()
             if result[0] == 0:
                 print(f"[MQTT] Send authorization to topic `device/{device_id}`")
-                return
             else:
                 print(f"[MQTT] Failed to send message to topic `device/{device_id}`")
-                return
+            return
